@@ -38,13 +38,13 @@ class FileProvenanceFileStorage(
     /**
      * The [FileStorage] to use for storing the files.
      */
-    private val storage: FileStorage,
+    private val storage: FileStorage<KnownProvenance>,
 
     /**
      * The name of the files to use for storing the contents of the associated files.
      */
     private val filename: String
-) : ProvenanceFileStorage {
+) : FileStorage<KnownProvenance> {
     private companion object : Logging
 
     init {
@@ -53,18 +53,18 @@ class FileProvenanceFileStorage(
         }
     }
 
-    override fun exists(provenance: KnownProvenance): Boolean {
-        val filePath = getFilePath(provenance)
+    override fun exists(key: KnownProvenance): Boolean {
+        val filePath = getFilePath(key)
 
         return storage.exists(filePath)
     }
 
-    override fun write(provenance: KnownProvenance, data: InputStream) {
-        storage.write(getFilePath(provenance), data)
+    override fun write(key: KnownProvenance, inputStream: InputStream) {
+        storage.write(getFilePath(key), inputStream)
     }
 
-    override fun read(provenance: KnownProvenance): InputStream? {
-        val filePath = getFilePath(provenance)
+    override fun read(key: KnownProvenance): InputStream? {
+        val filePath = getFilePath(key)
 
         return runCatching {
             storage.read(filePath)

@@ -36,14 +36,14 @@ class XZCompressedLocalFileStorage(
 ) : LocalFileStorage(directory) {
     override fun transformPath(path: String) = "$path.xz"
 
-    override fun read(path: String) =
+    override fun read(key: String) =
         try {
-            XZCompressorInputStream(super.read(transformPath(path)))
+            XZCompressorInputStream(super.read(transformPath(key)))
         } catch (compressedFileNotFoundException: FileNotFoundException) {
             // Fall back to try reading the uncompressed file.
             @Suppress("SwallowedException")
             try {
-                super.read(path)
+                super.read(key)
             } catch (uncompressedFileNotFoundException: FileNotFoundException) {
                 throw uncompressedFileNotFoundException.initCause(compressedFileNotFoundException)
             }

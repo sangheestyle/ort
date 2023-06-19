@@ -22,23 +22,23 @@ package org.ossreviewtoolkit.utils.ort.storage
 import java.io.InputStream
 
 /**
- * A storage for files, like a local directory or a remote server.
+ * A generic storage interface that associates a key of type [T] with an [InputStream].
  */
-interface FileStorage {
+interface FileStorage<T> {
     /**
-     * Return whether the given [path] exists or not.
+     * Return whether any data is associated by [key].
      */
-    fun exists(path: String): Boolean
+    fun exists(key: T): Boolean
 
     /**
-     * Read the file at [path]. It is the caller's responsibility to close the returned [InputStream] after consuming
-     * it.
+     * Return the data associated by [key], or null if there is no such data. It is the caller's responsibility to close
+     * the [InputStream].
      */
-    fun read(path: String): InputStream
+    fun read(key: T): InputStream
 
     /**
-     * Write the data from [inputStream] to the file at [path]. If the file already exists it is overwritten. The
-     * provided [inputStream] is closed after writing it to the file.
+     * Associate [key] with the given [inputStream]. Any existing association by [key] is replaced. The function
+     * implementation is responsible for closing the [InputStream].
      */
-    fun write(path: String, inputStream: InputStream)
+    fun write(key: T, inputStream: InputStream)
 }

@@ -36,7 +36,7 @@ open class LocalFileStorage(
      * The directory used to store files in.
      */
     val directory: File
-) : FileStorage {
+) : FileStorage<String> {
     private companion object : Logging
 
     /**
@@ -45,14 +45,14 @@ open class LocalFileStorage(
      */
     open fun transformPath(path: String): String = path
 
-    override fun exists(path: String) = directory.resolve(path).exists()
+    override fun exists(key: String) = directory.resolve(key).exists()
 
     @Synchronized
-    override fun read(path: String): InputStream {
-        val file = directory.resolve(path)
+    override fun read(key: String): InputStream {
+        val file = directory.resolve(key)
 
         require(file.canonicalFile.startsWith(directory.canonicalFile)) {
-            "Path '$path' is not in directory '${directory.invariantSeparatorsPath}'."
+            "Path '$key' is not in directory '${directory.invariantSeparatorsPath}'."
         }
 
         return file.inputStream()
@@ -75,8 +75,8 @@ open class LocalFileStorage(
     }
 
     @Synchronized
-    override fun write(path: String, inputStream: InputStream) {
-        safeOutputStream(path).use { outputStream ->
+    override fun write(key: String, inputStream: InputStream) {
+        safeOutputStream(key).use { outputStream ->
             inputStream.use { it.copyTo(outputStream) }
         }
     }

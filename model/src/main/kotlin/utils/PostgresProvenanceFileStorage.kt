@@ -43,6 +43,7 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.checkDatabaseEncoding
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.tableExists
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
+import org.ossreviewtoolkit.utils.ort.storage.FileStorage
 
 /**
  * A [DataSource]-based implementation of [ProvenanceFileStorage] that stores files associated by [KnownProvenance] in a
@@ -58,7 +59,7 @@ class PostgresProvenanceFileStorage(
      * The name of the table to use for storing the contents of the associated files.
      */
     tableName: String
-) : ProvenanceFileStorage {
+) : FileStorage<KnownProvenance> {
     private companion object : Logging
 
     private val table = ProvenanceFileTable(tableName)
@@ -79,30 +80,30 @@ class PostgresProvenanceFileStorage(
         }
     }
 
-    override fun exists(provenance: KnownProvenance): Boolean =
+    override fun exists(key: KnownProvenance): Boolean =
         database.transaction {
             table.slice(table.provenance.count()).select {
-                table.provenance eq provenance.storageKey()
+                table.provenance eq key.storageKey()
             }.first()[table.provenance.count()].toInt()
         } == 1
 
-    override fun write(provenance: KnownProvenance, data: InputStream) {
+    override fun write(key: KnownProvenance, inputStream: InputStream) {
         database.transaction {
             table.deleteWhere {
-                table.provenance eq provenance.storageKey()
+                table.provenance eq key.storageKey()
             }
 
             table.insert { statement ->
-                statement[this.provenance] = provenance.storageKey()
-                statement[zipData] = data.use { it.readBytes() }
+                statement[this.provenance] = key.storageKey()
+                statement[zipData] = inputStream.use { it.readBytes() }
             }
         }
     }
 
-    override fun read(provenance: KnownProvenance): InputStream? {
+    override fun read(key: KnownProvenance): InputStream? {
         val bytes = database.transaction {
             table.select {
-                table.provenance eq provenance.storageKey()
+                table.provenance eq key.storageKey()
             }.map {
                 it[table.zipData]
             }.firstOrNull()

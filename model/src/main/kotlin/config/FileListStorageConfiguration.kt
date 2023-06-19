@@ -21,10 +21,10 @@ package org.ossreviewtoolkit.model.config
 
 import org.apache.logging.log4j.kotlin.Logging
 
+import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.utils.DatabaseUtils
 import org.ossreviewtoolkit.model.utils.FileProvenanceFileStorage
 import org.ossreviewtoolkit.model.utils.PostgresProvenanceFileStorage
-import org.ossreviewtoolkit.model.utils.ProvenanceFileStorage
 import org.ossreviewtoolkit.utils.ort.ortDataDirectory
 import org.ossreviewtoolkit.utils.ort.storage.FileStorage
 import org.ossreviewtoolkit.utils.ort.storage.XZCompressedLocalFileStorage
@@ -55,7 +55,7 @@ data class FileListStorageConfiguration(
     }
 }
 
-fun FileListStorageConfiguration?.createStorage(): ProvenanceFileStorage =
+fun FileListStorageConfiguration?.createStorage(): FileStorage<KnownProvenance> =
     when {
         this?.fileStorage != null -> FileProvenanceFileStorage(
             storage = fileStorage.createFileStorage(),

@@ -66,7 +66,7 @@ class HttpFileStorage(
      * remote server.
      */
     private val cacheMaxAgeInSeconds: Int = 0
-) : FileStorage {
+) : FileStorage<String> {
     private companion object : Logging
 
     private val httpClient by lazy {
@@ -82,23 +82,23 @@ class HttpFileStorage(
         }
     }
 
-    override fun exists(path: String): Boolean {
+    override fun exists(key: String): Boolean {
         val request = Request.Builder()
             .headers(headers.toHeaders())
             .cacheControl(CacheControl.Builder().maxAge(cacheMaxAgeInSeconds, TimeUnit.SECONDS).build())
             .head()
-            .url(urlForPath(path))
+            .url(urlForPath(key))
             .build()
 
         return httpClient.execute(request).isSuccessful
     }
 
-    override fun read(path: String): InputStream {
+    override fun read(key: String): InputStream {
         val request = Request.Builder()
             .headers(headers.toHeaders())
             .cacheControl(CacheControl.Builder().maxAge(cacheMaxAgeInSeconds, TimeUnit.SECONDS).build())
             .get()
-            .url(urlForPath(path))
+            .url(urlForPath(key))
             .build()
 
         logger.debug { "Reading file from storage: ${request.url}" }
@@ -117,12 +117,12 @@ class HttpFileStorage(
         throw IOException("Could not read from '${request.url}': ${response.code} - ${response.message}")
     }
 
-    override fun write(path: String, inputStream: InputStream) {
+    override fun write(key: String, inputStream: InputStream) {
         inputStream.use {
             val request = Request.Builder()
                 .headers(headers.toHeaders())
                 .put(it.readBytes().toRequestBody())
-                .url(urlForPath(path))
+                .url(urlForPath(key))
                 .build()
 
             logger.debug { "Writing file to storage: ${request.url}" }
