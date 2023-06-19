@@ -56,32 +56,32 @@ class PostgresProvenanceFileStorageFunTest : WordSpec({
 
     "hasData()" should {
         "return false when no data for the given provenance has been added" {
-            storage.hasData(VCS_PROVENANCE) shouldBe false
+            storage.exists(VCS_PROVENANCE) shouldBe false
         }
 
         "return true when data for the given provenance has been added" {
-            storage.putData(VCS_PROVENANCE, InputStream.nullInputStream())
+            storage.write(VCS_PROVENANCE, InputStream.nullInputStream())
 
-            storage.hasData(VCS_PROVENANCE) shouldBe true
+            storage.exists(VCS_PROVENANCE) shouldBe true
         }
     }
 
     "putData()" should {
         "return the data corresponding to the given provenance given such data has been added" {
-            storage.putData(VCS_PROVENANCE, "VCS".byteInputStream())
-            storage.putData(SOURCE_ARTIFACT_PROVENANCE, "source artifact".byteInputStream())
+            storage.write(VCS_PROVENANCE, "VCS".byteInputStream())
+            storage.write(SOURCE_ARTIFACT_PROVENANCE, "source artifact".byteInputStream())
 
-            storage.getData(VCS_PROVENANCE) shouldNotBeNull { String(use { readBytes() }) shouldBe "VCS" }
-            storage.getData(SOURCE_ARTIFACT_PROVENANCE) shouldNotBeNull {
+            storage.read(VCS_PROVENANCE) shouldNotBeNull { String(use { readBytes() }) shouldBe "VCS" }
+            storage.read(SOURCE_ARTIFACT_PROVENANCE) shouldNotBeNull {
                 String(use { readBytes() }) shouldBe "source artifact"
             }
         }
 
         "return the overwritten file corresponding to the given provenance" {
-            storage.putData(SOURCE_ARTIFACT_PROVENANCE, "source artifact".byteInputStream())
-            storage.putData(SOURCE_ARTIFACT_PROVENANCE, "source artifact updated".byteInputStream())
+            storage.write(SOURCE_ARTIFACT_PROVENANCE, "source artifact".byteInputStream())
+            storage.write(SOURCE_ARTIFACT_PROVENANCE, "source artifact updated".byteInputStream())
 
-            storage.getData(SOURCE_ARTIFACT_PROVENANCE) shouldNotBeNull {
+            storage.read(SOURCE_ARTIFACT_PROVENANCE) shouldNotBeNull {
                 String(use { readBytes() }) shouldBe "source artifact updated"
             }
         }

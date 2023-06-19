@@ -47,15 +47,15 @@ internal class FileListResolver(
         }
     }
 
-    fun has(provenance: KnownProvenance): Boolean = storage.hasData(provenance)
+    fun has(provenance: KnownProvenance): Boolean = storage.exists(provenance)
 }
 
 private fun ProvenanceFileStorage.putFileList(provenance: KnownProvenance, fileList: FileList) {
-    putData(provenance, fileList.toYaml().byteInputStream())
+    write(provenance, fileList.toYaml().byteInputStream())
 }
 
 private fun ProvenanceFileStorage.getFileList(provenance: KnownProvenance): FileList? {
-    val data = getData(provenance) ?: return null
+    val data = read(provenance) ?: return null
     return data.use { yamlMapper.readValue<FileList>(it) }
 }
 

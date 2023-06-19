@@ -53,17 +53,17 @@ class FileProvenanceFileStorage(
         }
     }
 
-    override fun hasData(provenance: KnownProvenance): Boolean {
+    override fun exists(provenance: KnownProvenance): Boolean {
         val filePath = getFilePath(provenance)
 
         return storage.exists(filePath)
     }
 
-    override fun putData(provenance: KnownProvenance, data: InputStream) {
+    override fun write(provenance: KnownProvenance, data: InputStream) {
         storage.write(getFilePath(provenance), data)
     }
 
-    override fun getData(provenance: KnownProvenance): InputStream? {
+    override fun read(provenance: KnownProvenance): InputStream? {
         val filePath = getFilePath(provenance)
 
         return runCatching {

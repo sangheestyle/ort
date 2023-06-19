@@ -62,7 +62,7 @@ class FileArchiver(
     /**
      * Return whether an archive corresponding to [provenance] exists.
      */
-    fun hasArchive(provenance: KnownProvenance): Boolean = storage.hasData(provenance)
+    fun hasArchive(provenance: KnownProvenance): Boolean = storage.exists(provenance)
 
     /**
      * Archive all files in [directory] matching any of the configured patterns in the [storage].
@@ -90,7 +90,7 @@ class FileArchiver(
 
         logger.info { "Archived directory '$directory' in $zipDuration." }
 
-        val writeDuration = measureTime { storage.putData(provenance, zipFile.inputStream()) }
+        val writeDuration = measureTime { storage.write(provenance, zipFile.inputStream()) }
 
         logger.info { "Wrote archive of directory '$directory' to storage in $writeDuration." }
 
@@ -101,7 +101,7 @@ class FileArchiver(
      * Unarchive the archive corresponding to [provenance].
      */
     fun unarchive(directory: File, provenance: KnownProvenance): Boolean {
-        val (zipInputStream, readDuration) = measureTimedValue { storage.getData(provenance) }
+        val (zipInputStream, readDuration) = measureTimedValue { storage.read(provenance) }
 
         logger.info { "Read archive of directory '$directory' from storage in $readDuration." }
 

@@ -79,14 +79,14 @@ class PostgresProvenanceFileStorage(
         }
     }
 
-    override fun hasData(provenance: KnownProvenance): Boolean =
+    override fun exists(provenance: KnownProvenance): Boolean =
         database.transaction {
             table.slice(table.provenance.count()).select {
                 table.provenance eq provenance.storageKey()
             }.first()[table.provenance.count()].toInt()
         } == 1
 
-    override fun putData(provenance: KnownProvenance, data: InputStream) {
+    override fun write(provenance: KnownProvenance, data: InputStream) {
         database.transaction {
             table.deleteWhere {
                 table.provenance eq provenance.storageKey()
@@ -99,7 +99,7 @@ class PostgresProvenanceFileStorage(
         }
     }
 
-    override fun getData(provenance: KnownProvenance): InputStream? {
+    override fun read(provenance: KnownProvenance): InputStream? {
         val bytes = database.transaction {
             table.select {
                 table.provenance eq provenance.storageKey()
