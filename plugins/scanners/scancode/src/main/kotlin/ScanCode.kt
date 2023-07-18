@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.semver4j.RangesList
 import org.semver4j.RangesListFactory
+import org.semver4j.Semver
 
 /**
  * A wrapper for [ScanCode](https://github.com/nexB/scancode-toolkit).
@@ -117,6 +118,11 @@ class ScanCode internal constructor(
         buildList {
             addAll(configurationOptions)
             addAll(nonConfigurationOptions)
+
+            if (Semver(version).major >= 32) {
+                // Required to be able to map ScanCode license keys to SPDX IDs.
+                add("--license-references")
+            }
         }
     }
 
