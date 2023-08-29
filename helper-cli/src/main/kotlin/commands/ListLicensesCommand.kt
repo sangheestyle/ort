@@ -44,7 +44,7 @@ import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.TextLocation
-import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.DirectoryPackageConfigurationProvider
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.dir.DirPackageConfigurationProvider
 import org.ossreviewtoolkit.utils.common.FileMatcher
 import org.ossreviewtoolkit.utils.common.expandTilde
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression
@@ -85,7 +85,7 @@ internal class ListLicensesCommand : CliktCommand(
         "--offending-severities",
         help = "Set the severities to use for the filtering enabled by --offending-only, specified as " +
                 "comma-separated values."
-    ).enum<Severity>().split(",").default(enumValues<Severity>().asList())
+    ).enum<Severity>().split(",").default(Severity.entries)
 
     private val omitExcluded by option(
         "--omit-excluded",
@@ -151,7 +151,7 @@ internal class ListLicensesCommand : CliktCommand(
             ortResult.fetchScannedSources(packageId)
         }
 
-        val packageConfigurationProvider = DirectoryPackageConfigurationProvider(packageConfigurationsDir)
+        val packageConfigurationProvider = DirPackageConfigurationProvider(packageConfigurationsDir)
 
         fun isPathExcluded(provenance: Provenance, path: String): Boolean =
             if (ortResult.isProject(packageId)) {

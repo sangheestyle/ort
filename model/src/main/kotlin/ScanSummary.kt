@@ -76,8 +76,7 @@ data class ScanSummary(
 
     /**
      * The list of issues that occurred during the scan. This property is not serialized if the list is empty to reduce
-     * the size of the result file. If there are no issues at all, [ScannerRun.hasIssues] already contains that
-     * information.
+     * the size of the result file.
      */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val issues: List<Issue> = emptyList()
@@ -94,7 +93,7 @@ data class ScanSummary(
     }
 
     @get:JsonIgnore
-    val licenses: Set<SpdxExpression> = licenseFindings.mapTo(mutableSetOf()) { it.license }
+    val licenses: Set<SpdxExpression> by lazy { licenseFindings.mapTo(mutableSetOf()) { it.license } }
 
     /**
      * Filter all detected licenses and copyrights from this [ScanSummary] which are underneath [path]. Findings which

@@ -447,18 +447,18 @@ This tool wraps underlying license / copyright scanners with a common API so all
 same way to easily run them and compare their results. If passed an ORT result file with an analyzer result (`-i`), the
 *scanner* will automatically download the sources of the dependencies via the *downloader* and scan them afterwards.
 
-We recommend to use ORT with one of the following scanners as their integration has been thoroughly tested (in
+We recommend to use ORT with any of the following scanners as their integrations have been thoroughly tested (in
 alphabetical order):
 
-* FossID
+* [FossID](https://fossid.com/) (snippet scanner, commercial)
 * [ScanCode](https://github.com/nexB/scancode-toolkit)
 
 Additionally, the following reference implementations exist (in alphabetical order):
 
-* [Askalono](https://github.com/amzn/askalono)
+* [Askalono](https://github.com/jpeddicord/askalono)
 * [lc](https://github.com/boyter/lc)
-* [Licensee](https://github.com/benbalter/licensee)
-* [SCANOSS](https://www.scanoss.com/)
+* [Licensee](https://github.com/licensee/licensee)
+* [SCANOSS](https://www.scanoss.com/) (snippet scanner)
 
 For a comparison of some of these, see this
 [Bachelor Thesis](https://osr.cs.fau.de/2019/08/07/final-thesis-a-comparison-study-of-open-source-license-crawler/).
@@ -718,7 +718,12 @@ considered to be well-supported.
 
 To run the ORT binaries (also see [Installation from binaries](#from-binaries)) at least Java 11 is required. Memory and
 CPU requirements vary depending on the size and type of project(s) to analyze / scan, but the general recommendation is
-to configure Java with 8 GiB of memory (`-Xmx=8g`) and to use a CPU with at least 4 cores.
+to configure Java with 8 GiB of memory and to use a CPU with at least 4 cores.
+
+```shell
+# This will give the Java Virtual Machine 8GB Memory.
+export JAVA_OPTS="$JAVA_OPTS -Xmx8g"
+```
 
 If ORT requires external tools in order to analyze a project, these tools are listed by the `ort requirements` command.
 If a package manager is not list listed there, support for it is integrated directly into ORT and does not require any
@@ -783,10 +788,10 @@ any failing tests will show the deviation from the expected result in a unified 
 `git apply`. If the actual result should be taken as the new expected result, simply copy the diff from the console to
 the clipboard and run
 
-* `wl-paste | cut -d ' ' -f 5- | git apply` (Linux with Wayland)
-* `xsel -b | cut -d ' ' -f 5- | git apply` (Linux with X)
-* `cat /dev/clipboard | dos2unix | cut -d ' ' -f 5- | git apply` (Windows with Git Bash)
-* `pbpaste | cut -d ' ' -f 5- | git apply` (macOS)
+* `wl-paste | patch -p1` (Linux with Wayland)
+* `xsel -b | patch -p1` (Linux with X)
+* `cat /dev/clipboard | patch -p1` (Windows with Git Bash)
+* `pbpaste | patch -p1` (macOS)
 
 to apply the diff to the local Git working tree (this does not create a commit yet). After reviewing the changes, create
 a commit to accept the new expected result.

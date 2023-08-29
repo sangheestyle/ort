@@ -32,6 +32,7 @@ import java.io.File
 
 import kotlin.reflect.KClass
 
+import org.ossreviewtoolkit.analyzer.PackageManagerResult
 import org.ossreviewtoolkit.model.AnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.EvaluatorRun
@@ -96,9 +97,10 @@ private val TARGET_CLASSES = setOf(
     AnalyzerRun::class,
     EvaluatorRun::class,
     OrtResult::class,
-    ScannerRun::class,
+    ProjectAnalyzerResult::class,
+    PackageManagerResult::class,
     ScanResult::class,
-    ProjectAnalyzerResult::class
+    ScannerRun::class
 )
 
 // Paths to nodes in the tree of JsonNodes, whose subtree shall not be changed. Explicitly ignoring these subtrees is

@@ -21,6 +21,7 @@ package org.ossreviewtoolkit.plugins.commands.scanner
 
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.ProgramResult
+import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.groups.required
 import com.github.ajalt.clikt.parameters.groups.single
@@ -128,7 +129,7 @@ class ScannerCommand : OrtCommand(
     private val packageTypes by option(
         "--package-types",
         help = "A comma-separated list of the package types from the ORT file's analyzer result to limit scans to."
-    ).enum<PackageType>().split(",").default(enumValues<PackageType>().asList())
+    ).enum<PackageType>().split(",").default(PackageType.entries)
 
     private val skipExcluded by option(
         "--skip-excluded",
@@ -170,7 +171,7 @@ class ScannerCommand : OrtCommand(
             .partition { resolutionProvider.isResolved(it) }
         val severityStats = SeverityStats.createFromIssues(resolvedIssues, unresolvedIssues)
 
-        severityStats.print().conclude(ortConfig.severeIssueThreshold, 2)
+        severityStats.print(terminal).conclude(ortConfig.severeIssueThreshold, 2)
     }
 
     private fun runScanners(

@@ -21,16 +21,19 @@ package org.ossreviewtoolkit.plugins.commands.evaluator
 
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.ProgramResult
+import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.file
 
 import java.io.File
+import java.net.URL
 import java.time.Duration
 
 import kotlin.time.toKotlinDuration
@@ -65,9 +68,9 @@ import org.ossreviewtoolkit.plugins.commands.api.utils.inputGroup
 import org.ossreviewtoolkit.plugins.commands.api.utils.outputGroup
 import org.ossreviewtoolkit.plugins.commands.api.utils.readOrtResult
 import org.ossreviewtoolkit.plugins.commands.api.utils.writeOrtResult
-import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.DirectoryPackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
+import org.ossreviewtoolkit.plugins.packageconfigurationproviders.dir.DirPackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packagecurationproviders.api.SimplePackageCurationProvider
 import org.ossreviewtoolkit.plugins.packagecurationproviders.file.FilePackageCurationProvider
 import org.ossreviewtoolkit.utils.common.expandTilde
@@ -112,12 +115,12 @@ class EvaluatorCommand : OrtCommand(
     ).convert { it.expandTilde() }
         .file(mustExist = true, canBeFile = true, canBeDir = false, mustBeWritable = false, mustBeReadable = true)
         .convert { it.absoluteFile.normalize() }
-        .default(ortConfigDirectory.resolve(ORT_EVALUATOR_RULES_FILENAME))
+        .multiple(listOf(ortConfigDirectory.resolve(ORT_EVALUATOR_RULES_FILENAME)))
 
     private val rulesResource by option(
         "--rules-resource",
         help = "The name of a script resource on the classpath that contains rules."
-    )
+    ).multiple()
 
     private val copyrightGarbageFile by option(
         "--copyright-garbage-file",
@@ -196,10 +199,10 @@ class EvaluatorCommand : OrtCommand(
     ).flag()
 
     override fun run() {
-        val scriptUrls = listOfNotNull(
-            rulesFile.takeIf { it.isFile }?.toURI()?.toURL(),
-            rulesResource?.let { javaClass.getResource(it) }
-        )
+        val scriptUrls = mutableListOf<URL>()
+
+        rulesFile.mapTo(scriptUrls) { it.toURI().toURL() }
+        rulesResource.mapTo(scriptUrls) { javaClass.getResource(it) }
 
         if (scriptUrls.isEmpty()) {
             throw BadParameterValue("Neither a rules file nor a rules resource was specified.")
@@ -284,7 +287,7 @@ class EvaluatorCommand : OrtCommand(
             }
 
             if (packageConfigurationsDir != null) {
-                add(DirectoryPackageConfigurationProvider(packageConfigurationsDir))
+                add(DirPackageConfigurationProvider(packageConfigurationsDir))
             } else {
                 val packageConfigurationProviders =
                     PackageConfigurationProviderFactory.create(ortConfig.packageConfigurationProviders)
@@ -335,7 +338,7 @@ class EvaluatorCommand : OrtCommand(
             evaluatorRun.violations.partition { resolutionProvider.isResolved(it) }
         val severityStats = SeverityStats.createFromRuleViolations(resolvedViolations, unresolvedViolations)
 
-        severityStats.print().conclude(ortConfig.severeRuleViolationThreshold, 2)
+        severityStats.print(terminal).conclude(ortConfig.severeRuleViolationThreshold, 2)
     }
 }
 

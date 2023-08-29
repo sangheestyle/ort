@@ -53,7 +53,7 @@ import retrofit2.HttpException
 
 class ClearlyDefinedPackageCurationProviderConfig(
     /**
-     * The URL of the ClearlyDefined server to use. If null, uses the [production server][Server.PRODUCTION.apiUrl].
+     * The URL of the ClearlyDefined server to use.
      */
     val serverUrl: String,
 
@@ -104,7 +104,7 @@ class ClearlyDefinedPackageCurationProvider(
             if (coordinates != null) {
                 coordinatesToIds[coordinates] = pkg.id
             } else {
-                logger.warn { "Unable to create ClearlyDefined coordinates for $pkg." }
+                logger.warn { "Unable to create ClearlyDefined coordinates for '${pkg.id.toCoordinates()}'." }
             }
         }
 

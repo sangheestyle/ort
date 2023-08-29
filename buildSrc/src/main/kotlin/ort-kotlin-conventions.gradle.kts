@@ -33,6 +33,7 @@ import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -43,6 +44,7 @@ plugins {
     // Apply core plugins.
     jacoco
     `maven-publish`
+    signing
 
     // Apply precompiled plugins.
     id("ort-base-conventions")
@@ -116,21 +118,21 @@ detekt {
     basePath = rootDir.path
 }
 
-// See https://kotlinlang.org/docs/compiler-reference.html#jvm-target-version.
 val javaVersion = JavaVersion.current()
-val maxKotlinJvmTarget = javaVersion.majorVersion.toInt().coerceAtMost(19)
+val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaVersion.majorVersion) }
+    .getOrDefault(JvmTarget.entries.max())
 
 val mergeDetektReportsTaskName = "mergeDetektReports"
 val mergeDetektReports = if (rootProject.tasks.findByName(mergeDetektReportsTaskName) != null) {
     rootProject.tasks.named<ReportMergeTask>(mergeDetektReportsTaskName)
 } else {
     rootProject.tasks.register<ReportMergeTask>(mergeDetektReportsTaskName) {
-        output = rootProject.buildDir.resolve("reports/detekt/merged.sarif")
+        output = rootProject.layout.buildDirectory.dir("reports/detekt/merged.sarif").get().asFile
     }
 }
 
 tasks.withType<Detekt> detekt@{
-    jvmTarget = maxKotlinJvmTarget.toString()
+    jvmTarget = maxKotlinJvmTarget.target
 
     dependsOn(":detekt-rules:assemble")
 
@@ -156,8 +158,8 @@ tasks.withType<Detekt> detekt@{
 
 tasks.withType<JavaCompile>().configureEach {
     // Align this with Kotlin to avoid errors, see https://youtrack.jetbrains.com/issue/KT-48745.
-    sourceCompatibility = maxKotlinJvmTarget.toString()
-    targetCompatibility = maxKotlinJvmTarget.toString()
+    sourceCompatibility = maxKotlinJvmTarget.target
+    targetCompatibility = maxKotlinJvmTarget.target
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -167,11 +169,10 @@ tasks.withType<KotlinCompile>().configureEach {
         "-opt-in=kotlin.time.ExperimentalTime"
     )
 
-    kotlinOptions {
+    compilerOptions {
         allWarningsAsErrors = true
-        apiVersion = "1.9"
-        freeCompilerArgs = freeCompilerArgs + customCompilerArgs
-        jvmTarget = maxKotlinJvmTarget.toString()
+        freeCompilerArgs.addAll(customCompilerArgs)
+        jvmTarget = maxKotlinJvmTarget
     }
 }
 
@@ -225,7 +226,7 @@ tasks.withType<Test>().configureEach {
         )
     }
 
-    val testSystemProperties = mutableListOf("gradle.build.dir" to project.buildDir.path)
+    val testSystemProperties = mutableListOf("gradle.build.dir" to project.layout.buildDirectory.get().asFile.path)
 
     listOf(
         "java.io.tmpdir",
@@ -279,7 +280,11 @@ tasks.register("jacocoReport") {
 
 configure<PublishingExtension> {
     publications {
-        create<MavenPublication>(name) {
+        val publicationName = name.replace(Regex("([a-z])-([a-z])")) {
+            "${it.groupValues[1]}${it.groupValues[2].uppercase()}"
+        }
+
+        create<MavenPublication>(publicationName) {
             fun getGroupId(parent: Project?): String =
                 if (parent == null) "" else "${getGroupId(parent.parent)}.${parent.name.replace("-", "")}"
 
@@ -306,4 +311,32 @@ configure<PublishingExtension> {
             }
         }
     }
+
+    repositories {
+        maven {
+            name = "OSSRH"
+
+            val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            val snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = uri(if (version.toString().endsWith("-SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+
+            credentials {
+                username = System.getenv("OSSRH_USER") ?: return@credentials
+                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+            }
+        }
+    }
+}
+
+signing {
+    val signingKey = System.getenv("SIGNING_KEY") ?: return@signing
+    val signingPassword = System.getenv("SIGNING_PASSWORD") ?: return@signing
+    useInMemoryPgpKeys(signingKey, signingPassword)
+
+    setRequired {
+        // Do not require signing for `PublishToMavenLocal` tasks only.
+        gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
+    }
+
+    sign(publishing.publications)
 }

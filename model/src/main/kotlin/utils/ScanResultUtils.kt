@@ -69,10 +69,18 @@ fun mergeScanResultsByScanner(
                 snippetFindings = snippetFindings,
                 issues = issues
             ),
-            additionalData = scanResultsForScanner.map { it.additionalData }.reduce { acc, map -> acc + map }
+            additionalData = scanResultsForScanner.map { it.additionalData }.mergeAdditionalData()
         )
     }
 }
+
+/**
+ * Merge a list of [ScanResult.additionalData] by keeping all keys and concatenating values to a string separated by
+ * commas.
+ */
+private fun List<Map<String, String>>.mergeAdditionalData(): Map<String, String> = flatMap { it.entries }
+    .groupBy({ it.key }) { it.value }
+    .mapValues { it.value.joinToString(",") }
 
 private fun Map<String, List<ScanResult>>.mergeLicenseFindings(): Set<LicenseFinding> {
     val findingsByPath = mapValues { (_, scanResults) ->

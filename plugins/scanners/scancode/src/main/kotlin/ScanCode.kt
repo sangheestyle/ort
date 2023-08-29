@@ -30,7 +30,6 @@ import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
-import org.ossreviewtoolkit.model.jsonMapper
 import org.ossreviewtoolkit.scanner.AbstractScannerWrapperFactory
 import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
 import org.ossreviewtoolkit.scanner.ScanContext
@@ -38,7 +37,6 @@ import org.ossreviewtoolkit.scanner.ScanResultsStorage
 import org.ossreviewtoolkit.scanner.ScannerCriteria
 import org.ossreviewtoolkit.utils.common.Os
 import org.ossreviewtoolkit.utils.common.ProcessCapture
-import org.ossreviewtoolkit.utils.common.isTrue
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.common.splitOnWhitespace
 import org.ossreviewtoolkit.utils.common.withoutPrefix
@@ -57,9 +55,6 @@ import org.semver4j.RangesListFactory
  *   looking up results from the [ScanResultsStorage]. Defaults to [DEFAULT_CONFIGURATION_OPTIONS].
  * * **"commandLineNonConfig":** Command line options that do not modify the result and should therefore not be
  *   considered in [configuration], like "--processes". Defaults to [DEFAULT_NON_CONFIGURATION_OPTIONS].
- * * **"parseLicenseExpressions":** By default the license `key`, which can contain a single license id, is used for the
- *   detected licenses. If this option is set to "true", the detected `license_expression` is used instead, which can
- *   contain an SPDX expression.
  */
 class ScanCode internal constructor(
     name: String,
@@ -167,13 +162,11 @@ class ScanCode internal constructor(
     }
 
     override fun createSummary(result: String, startTime: Instant, endTime: Instant): ScanSummary {
-        val json = jsonMapper.readTree(result)
-        val parseLicenseExpressions = scanCodeConfiguration["parseLicenseExpressions"].isTrue()
-        val summary = generateSummary(json, parseLicenseExpressions)
+        val summary = parseResult(result).toScanSummary()
 
         val issues = summary.issues.toMutableList()
 
-        mapUnknownIssues(issues)
+        mapUnknownErrors(issues)
         mapTimeoutErrors(issues)
 
         return summary.copy(issues = issues)

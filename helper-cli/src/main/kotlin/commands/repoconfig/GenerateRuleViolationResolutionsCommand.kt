@@ -62,8 +62,8 @@ internal class GenerateRuleViolationResolutionsCommand : CliktCommand(
     private val severity by option(
         "--severity",
         help = "Only consider violations of the given severities, specified as comma-separated values. Allowed " +
-                "values: ERROR,WARNING,HINT."
-    ).enum<Severity>().split(",").default(enumValues<Severity>().asList())
+                "values: ${Severity.entries.joinToString()}."
+    ).enum<Severity>().split(",").default(Severity.entries)
 
     override fun run() {
         val repositoryConfiguration = repositoryConfigurationFile.readValue<RepositoryConfiguration>()

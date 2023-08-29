@@ -19,20 +19,15 @@
 
 package org.ossreviewtoolkit.plugins.packageconfigurationproviders.api
 
-import java.io.File
-import java.io.IOException
-
-import org.ossreviewtoolkit.model.FileFormat
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.VcsMatcher
-import org.ossreviewtoolkit.model.readValue
 import org.ossreviewtoolkit.model.utils.PackageConfigurationProvider
 
 /**
- * A provider for [PackageConfiguration]s providing exactly the packages of the given list.
- * Throws an exception if there is more than one configuration per [Identifier] and [Provenance].
+ * A [PackageConfigurationProvider] that provides the [PackageConfiguration]s specified in the collection. Throws an
+ * exception if there is more than one configuration per [Identifier] and [Provenance].
  */
 open class SimplePackageConfigurationProvider(
     configurations: Collection<PackageConfiguration>
@@ -42,30 +37,12 @@ open class SimplePackageConfigurationProvider(
     init {
         configurations.checkAtMostOneConfigurationPerIdAndProvenance()
 
-        configurationsById = configurations.groupByTo(HashMap()) { it.id }
+        configurationsById = configurations.groupBy { it.id }
     }
 
     override fun getPackageConfigurations(packageId: Identifier, provenance: Provenance): List<PackageConfiguration> =
         configurationsById[packageId]?.filter { it.matches(packageId, provenance) }.orEmpty()
 }
-
-/**
- * A [PackageConfigurationProvider] that provides all [PackageConfiguration]s recursively found in the given directory.
- * All files in the directory with a [known extension][FileFormat.findFilesWithKnownExtensions] must be package
- * configuration files, each containing only a single package configuration. Throws an exception if there is more than
- * one configuration per [Identifier] and [Provenance].
- */
-class DirectoryPackageConfigurationProvider(directory: File?) :
-    SimplePackageConfigurationProvider(directory?.let { readDirectory(it) }.orEmpty())
-
-private fun readDirectory(directory: File) =
-    FileFormat.findFilesWithKnownExtensions(directory).map { file ->
-        runCatching {
-            file.readValue<PackageConfiguration>()
-        }.getOrElse { e ->
-            throw IOException("Error reading package configuration from '${file.absolutePath}'.", e)
-        }
-    }
 
 private fun Collection<PackageConfiguration>.checkAtMostOneConfigurationPerIdAndProvenance() {
     data class Key(val id: Identifier, val sourceArtifactUrl: String?, val vcsMatcher: VcsMatcher?)

@@ -17,14 +17,31 @@
  * License-Filename: LICENSE
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // Apply precompiled plugins.
     id("ort-library-conventions")
+
+    // Apply third-party plugins.
+    alias(libs.plugins.kotlinSerialization)
 }
 
 dependencies {
     api(project(":model"))
     api(project(":scanner"))
 
+    implementation(libs.bundles.kotlinxSerialization)
+
     funTestApi(testFixtures(project(":scanner")))
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    val customCompilerArgs = listOf(
+        "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
+    )
+
+    compilerOptions {
+        freeCompilerArgs.addAll(customCompilerArgs)
+    }
 }

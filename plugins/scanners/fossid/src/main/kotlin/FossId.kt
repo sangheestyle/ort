@@ -500,7 +500,8 @@ class FossId internal constructor(
             }
         }
 
-        val mappedUrlWithoutCredentials = urlProvider.getUrl(urlWithoutCredentials)
+        val mappedUrl = urlProvider.getUrl(urlWithoutCredentials)
+        val mappedUrlWithoutCredentials = mappedUrl.replaceCredentialsInUri()
 
         // we ignore the revision because we want to do a delta scan
         val recentScans = scans.recentScansForRepository(
@@ -526,13 +527,28 @@ class FossId internal constructor(
             namingProvider.createScanCode(projectName, DeltaTag.DELTA, branchLabel)
         }
 
-        val scanId = createScan(projectCode, scanCode, mappedUrlWithoutCredentials, revision, projectRevision.orEmpty())
+        val scanId = createScan(projectCode, scanCode, mappedUrl, revision, projectRevision.orEmpty())
 
         logger.info { "Initiating the download..." }
         service.downloadFromGit(config.user, config.apiKey, scanCode)
             .checkResponse("download data from Git", false)
 
         if (existingScan == null) {
+            val excludesRules = context.excludes?.let {
+                convertRules(it, issues).also {
+                    logger.info { "${it.size} rule(s) from ORT excludes have been found." }
+                }
+            }.orEmpty()
+
+            excludesRules.forEach {
+                service.createIgnoreRule(config.user, config.apiKey, scanCode, it.type, it.value, RuleScope.SCAN)
+                    .checkResponse("create ignore rules", false)
+
+                logger.info {
+                    "Ignore rule of type '${it.type}' and value '${it.value}' has been created for the new scan."
+                }
+            }
+
             if (config.waitForResult) checkScan(scanCode)
         } else {
             val existingScanCode = requireNotNull(existingScan.code) {

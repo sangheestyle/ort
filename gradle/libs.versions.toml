@@ -1,29 +1,29 @@
 [versions]
-dependencyAnalysisPlugin = "1.20.0"
-detektPlugin = "1.23.0"
+dependencyAnalysisPlugin = "1.21.0"
+detektPlugin = "1.23.1"
 dokkatooPlugin = "1.6.0"
-downloadPlugin = "5.4.0"
-graalVmNativeImagePlugin = "0.9.23"
+downloadPlugin = "5.5.0"
+graalVmNativeImagePlugin = "0.9.25"
 graphQlPlugin = "6.5.3"
 ideaExtPlugin = "1.1.7"
-kotlinPlugin = "1.9.0"
+kotlinPlugin = "1.9.10"
 versionsPlugin = "0.47.0"
 
 antlr = "4.13.0"
 asciidoctorj = "2.5.10"
 asciidoctorjPdf = "2.3.9"
-clikt = "4.0.0"
+clikt = "4.2.0"
 commonsCompress = "1.23.0"
-cvssCalculator = "1.4.1"
+cvssCalculator = "1.4.2"
 cyclonedx = "7.3.2"
 diffUtils = "4.12"
 diskLruCache = "2.0.2"
-exposed = "0.41.1"
+exposed = "0.42.1"
 flexmark = "0.64.8"
 freemarker = "2.3.32"
 greenmail = "2.0.0"
 hikari = "5.0.1"
-hoplite = "2.7.4"
+hoplite = "2.7.5"
 jackson = "2.15.2"
 jakartaMail = "2.0.1"
 jgit = "6.6.0.202305301015-r"
@@ -32,16 +32,16 @@ jruby = "9.4.3.0"
 jslt = "0.1.14"
 jsonSchemaValidator = "1.0.86"
 kotest = "5.6.2"
-kotlinxCoroutines = "1.7.2"
+kotlinxCoroutines = "1.7.3"
 kotlinxHtml = "0.9.1"
-kotlinxSerialization = "1.5.1"
-ktor = "2.3.2"
+kotlinxSerialization = "1.6.0"
+ktor = "2.3.3"
 log4jApi = "2.20.0"
 log4jApiKotlin = "1.2.0"
-logback = "1.4.8"
-maven = "3.9.3"
-mavenResolver = "1.9.13"
-mockk = "1.13.5"
+logback = "1.4.11"
+maven = "3.9.4"
+mavenResolver = "1.9.15"
+mockk = "1.13.7"
 okhttp = "4.11.0"
 postgres = "42.6.0"
 postgresEmbedded = "1.0.1"
@@ -50,7 +50,7 @@ retrofit = "2.9.0"
 retrofitConverterKotlinxSerialization = "1.0.0"
 saxonHe = "12.3"
 scanoss = "1.1.6"
-semver4j = "5.0.0"
+semver4j = "5.1.0"
 springCore = "5.3.29"
 svnkit = "1.10.11"
 sw360Client = "16.0.0-m1"
@@ -84,6 +84,7 @@ exposedCore = { module = "org.jetbrains.exposed:exposed-core", version.ref = "ex
 exposedDao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposedJavaTime = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 exposedJdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposedJson = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 flexmark = { module = "com.vladsch.flexmark:flexmark", version.ref = "flexmark" }
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 graalVmNativeImage = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalVmNativeImagePlugin" }
@@ -153,7 +154,7 @@ wiremock = { module = "com.github.tomakehurst:wiremock-jre8", version.ref = "wir
 xz = { module = "org.tukaani:xz", version.ref = "xz" }
 
 [bundles]
-exposed = ["exposedCore", "exposedDao", "exposedJdbc", "exposedJavaTime"]
+exposed = ["exposedCore", "exposedDao", "exposedJdbc", "exposedJavaTime", "exposedJson"]
 hoplite = ["hopliteCore", "hopliteYaml"]
 kotlinxSerialization = ["kotlinxSerializationCore", "kotlinxSerializationJson"]
 mavenResolver = ["mavenResolverConnectorBasic", "mavenResolverTransportFile", "mavenResolverTransportHttp", "mavenResolverTransportWagon"]
